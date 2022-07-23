@@ -10,7 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from authentications.api.serializer import (MyTokenObtainPairSerializer,
                                             RegisterSerializer,
-                                            UserDetailSerializer)
+                                            UserDetailSerializer,ChangePasswordSerializer)
 from authentications.models import Users
 
 # Create your views here.
@@ -88,6 +88,58 @@ class UserLogin(TokenObtainPairView):
     """Overiding the TokenObtainPiarView of simple jwt to login user"""
     serializer_class = MyTokenObtainPairSerializer
 
+
+class ChangePassword(UpdateAPIView):
+    """User change password view endpoint where both users can change their password"""
+    model = Users
+    queryset = Users.objects
+    # passqueryset = GeneratedPasswords.objects
+    serializer_class = ChangePasswordSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        """Getting the current user object to
+        update the fields in the database"""
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        """Making a PUT request to change passowrd by both user and superuser"""
+        self.object = self.get_object()
+        serializer = self.serializer_class(data=request.data)
+        try:
+            if serializer.is_valid():
+                if not self.object.check_password(serializer.data.get("old_password")):
+                    return Response({
+                        "status": "Wrong old password",
+                        "detail": "Password change unsuccessful"},
+                        status=status.HTTP_400_BAD_REQUEST)
+                self.object.set_password(serializer.data.get("new_password"))
+                self.object.save()
+                # try:
+                #     password = self.passqueryset.get(password=serializer.data.get("old_password"))
+                #     if password:
+                #         password.delete()
+                # except GeneratedPasswords.DoesNotExist:
+                #     pass
+                return Response({
+                    "status":"success",
+                    "detail": "Password changed successfully",
+                    "data": {
+                        "username":self.object.username,
+                        "email_address":self.object.email_address,
+                        "is_admin": self.object.is_admin,
+                        "is_superuser": self.object.is_superuser,
+                        }},
+                        status=status.HTTP_200_OK)
+            return Response({
+                "status": "failure",
+                "detail": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({
+                "status":"failure",
+                "detail":"change password failed"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetails(GenericAPIView):

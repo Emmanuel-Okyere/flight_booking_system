@@ -10,6 +10,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = Users
         fields = ["id","first_name","last_name",
         "username","email_address","phone_number","password"]
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    """User change password serializer"""
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    class Meta:
+        """Pre displayed fields for user"""
+        model = Users
+        fields = [
+            "old_password",
+            "new_password"
+        ]
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """Verifying user tokens to get details"""
