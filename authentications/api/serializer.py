@@ -23,6 +23,21 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             "new_password"
         ]
 
+class RequestPasswordResetEmail(serializers.ModelSerializer):
+    email_address = serializers.EmailField()
+    class Meta:
+        model = Users
+        fields =["email_address"]
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField()
+    email_address = serializers.EmailField()
+    token = serializers.CharField()
+    class Meta:
+        model = Users
+        fields =["password","email_address","token"]
+
 class UserDetailSerializer(serializers.ModelSerializer):
     """Verifying user tokens to get details"""
     class Meta:

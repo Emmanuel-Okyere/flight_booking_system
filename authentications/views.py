@@ -6,11 +6,13 @@ from rest_framework.generics import (GenericAPIView, ListAPIView,
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from authentications.api.serializer import (MyTokenObtainPairSerializer,
                                             RegisterSerializer,
-                                            UserDetailSerializer,ChangePasswordSerializer)
+                                            UserDetailSerializer,ChangePasswordSerializer,
+                                            RequestPasswordResetEmail,ResetPasswordSerializer)
 from authentications.models import Users
 
 # Create your views here.
@@ -89,12 +91,13 @@ class UserLogin(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-class ChangePassword(UpdateAPIView):
+class ChangePassword(GenericAPIView):
     """User change password view endpoint where both users can change their password"""
     model = Users
     queryset = Users.objects
     # passqueryset = GeneratedPasswords.objects
     serializer_class = ChangePasswordSerializer
+    authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get_object(self, queryset=None):
@@ -102,7 +105,7 @@ class ChangePassword(UpdateAPIView):
         update the fields in the database"""
         return self.request.user
 
-    def update(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         """Making a PUT request to change passowrd by both user and superuser"""
         self.object = self.get_object()
         serializer = self.serializer_class(data=request.data)
@@ -141,6 +144,96 @@ class ChangePassword(UpdateAPIView):
                 "detail":"change password failed"
             }, status=status.HTTP_400_BAD_REQUEST)
 
+class RequestResetPasswordEmail(GenericAPIView):
+    queryset = Users.objects
+    serializer_class = RequestPasswordResetEmail
+    permission_classes = []
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            try:
+                email = serializer.data["email_address"]
+                user = self.queryset.get(email_address=email)
+                password_reset_token = default_token_generator.make_token(user)
+                send_mail("Email Verification Link",
+                    f"Password Reset link:{os.getenv('VERIFY_HOSTNAME')}accounts/reset-password/confirm/?iam={email}&def={password_reset_token}\n\n\n\n\n\n Do not share this link with anyone.\n This link can only be used once",
+                    os.getenv("EMAIL_HOST_USER"), [email])
+                return Response({
+                    "status":"sucess",
+                    "detail":"reset email sent"
+                })
+            except Users.DoesNotExist:
+                return Response({
+                "status": "failure",
+                "detail": "User with email does not exist"},
+                status=status.HTTP_404_NOT_FOUND)
+        return Response({
+                "status": "failure",
+                "detail": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordLinkVerify(GenericAPIView):
+    queryset = Users.objects
+    permission_classes = []
+    def get(self,request):
+        try:
+            user = self.queryset.get(email_address =request.GET["iam"])
+            token = request.GET["def"]
+            if default_token_generator.check_token(user,token):
+                return Response({
+                    "status":"sucess",
+                    "detail":"link verified successful",
+                    "data":{
+                        "email_address":user.email_address
+                    }
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status":"failure",
+                    "detail":"link invalid"
+                }, status=status.HTTP_200_OK)
+        except Users.DoesNotExist:
+            return Response({
+                    "status":"failure",
+                    "detail":"User with link does not exist"
+                }, status=status.HTTP_200_OK)
+
+class ResetPasswordView(GenericAPIView):
+    queryset = Users.objects
+    serializer_class = ResetPasswordSerializer
+    permission_classes = []
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            try:
+                email = serializer.data["email_address"]
+                token = serializer.data["token"]
+                password = serializer.data["password"]
+                user = self.queryset.get(email_address = email)
+                if default_token_generator.check_token(user,token):
+                    user.set_password(password)
+                    user.save()
+                    return Response({
+                    "status":"success",
+                    "detail": "Password reset successful"
+                    },
+                        status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "status":"failure",
+                        "detail":"link invalid"
+                    }, status=status.HTTP_200_OK)
+            except Users.DoesNotExist:
+                return Response({
+                    "status":"failure",
+                    "detail":"user not found"
+                }, status= status.HTTP_404_NOT_FOUND)
+        return Response({
+                "status": "failure",
+                "detail": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST)
 
 class UserDetails(GenericAPIView):
     """View for getting user details with tokens"""
