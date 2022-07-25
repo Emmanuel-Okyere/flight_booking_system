@@ -11,6 +11,7 @@ from authentications.views import (
     ResetPasswordLinkVerify,
     ResetPasswordView,
     ManagerRegisterUserView,
+    GoogleLoginView,
 )
 
 
@@ -31,4 +32,5 @@ urlpatterns = [
         "reset-password/done/", ResetPasswordView.as_view(), name="reset-password-done"
     ),
     path("login/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("google/", GoogleLoginView.as_view(), name="google"),
 ]

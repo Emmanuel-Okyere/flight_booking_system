@@ -1,15 +1,21 @@
 """VIews for Authentications application"""
 import os
 import random
+import requests
 import string
+from rest_framework.utils import json
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.base_user import BaseUserManager
 from django.core.mail import send_mail
+from requests.exceptions import ConnectionError
 from authentications.api.serializer import (
     MyTokenObtainPairSerializer,
     RegisterSerializer,
@@ -187,7 +193,9 @@ class RequestResetPasswordEmail(GenericAPIView):
                 password_reset_token = default_token_generator.make_token(user)
                 send_mail(
                     "Email Verification Link",
-                    f"Password Reset link:{os.getenv('VERIFY_HOSTNAME')}accounts/reset-password/confirm/?iam={email}&def={password_reset_token}\n\n\n\n\n\n Do not share this link with anyone.\n This link can only be used once",
+                    f"Password Reset link:{os.getenv('VERIFY_HOSTNAME')}accounts/reset-password/confirm/?iam={email}&def={password_reset_token}\n\n\
+                    Do not share this link with anyone.\n\
+                    This link can only be used once",
                     os.getenv("EMAIL_HOST_USER"),
                     [email],
                 )
@@ -343,7 +351,7 @@ class ManagerRegisterUserView(GenericAPIView):
             return Response(
                 {
                     "status": "success",
-                    "details": "Libarian registered successfully",
+                    "detail": "Admin registered successfully",
                     "data": {
                         "username": serializer.data["username"],
                         "email_address": serializer.data["email_address"],
@@ -353,6 +361,75 @@ class ManagerRegisterUserView(GenericAPIView):
                 status=status.HTTP_201_CREATED,
             )
         return Response(
-            {"status": "failure", "details": serializer.errors},
+            {"status": "failure", "detail": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class GoogleLoginView(GenericAPIView):
+    """Google Auth2 login view"""
+
+    queryset = Users.objects
+    permission_classes = []
+
+    def post(self, request):
+        """Post request to google to authenticate the token"""
+        payload = {"access_token": request.data.get("token")}
+        try:
+            auth_request = requests.get(
+                "https://www.googleapis.com/oauth2/v2/userinfo", params=payload
+            )
+            data = json.loads(auth_request.text)
+            if "error" in data:
+
+                return Response(
+                    {
+                        "status": "failure",
+                        "detail": "wrong google token / this google token is already expired.",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except ConnectionError:
+            return Response(
+                {
+                    "status": "failure",
+                    "detail": "token verification failed, please check connection",
+                }
+            )
+        try:
+            user = self.queryset.get(email_address=data["email"])
+        except Users.DoesNotExist:
+            try:
+                first_name = data["name"].split()[0]
+                last_name = data["name"].split()[-1]
+                username = f"{first_name}{last_name.capitalize()}"
+                user = self.queryset.create_user(
+                    first_name=first_name,
+                    last_name=last_name,
+                    username=username,
+                    email_address=data["email"],
+                    password=make_password(BaseUserManager().make_random_password()),
+                )
+            except KeyError:
+                user = self.queryset.create_user(
+                    username=data["email"],
+                    email_address=data["email"],
+                    password=make_password(BaseUserManager().make_random_password()),
+                )
+            user.is_active = True
+            user.save()
+        token = RefreshToken.for_user(user)
+        return Response(
+            {
+                "refresh": str(token),
+                "access": str(token.access_token),
+                "data": {
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "username": user.username,
+                    "phone_number": user.phone_number,
+                    "is_admin": user.is_admin,
+                    "is_superuser": user.is_superuser,
+                },
+            }
         )
