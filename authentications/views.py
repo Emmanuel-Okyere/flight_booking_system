@@ -111,12 +111,12 @@ class EmailVerification(GenericAPIView):
             else:
                 return Response(
                     {"status": "failure", "detail": "link invalid"},
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         except Users.DoesNotExist:
             return Response(
                 {"status": "failure", "detail": "User with link does not exist"},
-                status=status.HTTP_200_OK,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
 
@@ -144,8 +144,8 @@ class ChangePassword(GenericAPIView):
                 if not user.check_password(serializer.data.get("old_password")):
                     return Response(
                         {
-                            "status": "Wrong old password",
-                            "detail": "Password change unsuccessful",
+                            "status": "failure",
+                            "detail": "wrong old password",
                         },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
@@ -268,7 +268,7 @@ class ResetPasswordView(GenericAPIView):
                     )
                 else:
                     return Response(
-                        {"status": "failure", "detail": "link invalid"},
+                        {"status": "failure", "detail": "token invalid"},
                         status=status.HTTP_200_OK,
                     )
             except Users.DoesNotExist:
@@ -353,9 +353,10 @@ class ManagerRegisterUserView(GenericAPIView):
                     "status": "success",
                     "detail": "Admin registered successfully",
                     "data": {
+                        "first_name": serializer.data["first_name"],
+                        "last_name": serializer.data["last_name"],
                         "username": serializer.data["username"],
                         "email_address": serializer.data["email_address"],
-                        "password": password,
                     },
                 },
                 status=status.HTTP_201_CREATED,
@@ -394,7 +395,8 @@ class GoogleLoginView(GenericAPIView):
                 {
                     "status": "failure",
                     "detail": "token verification failed, please check connection",
-                }
+                },
+                status=status.HTTP_408_REQUEST_TIMEOUT,
             )
         try:
             user = self.queryset.get(email_address=data["email"])
@@ -427,6 +429,7 @@ class GoogleLoginView(GenericAPIView):
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                     "username": user.username,
+                    "email_address": user.email_address,
                     "phone_number": user.phone_number,
                     "is_admin": user.is_admin,
                     "is_superuser": user.is_superuser,
