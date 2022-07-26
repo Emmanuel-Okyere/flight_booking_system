@@ -24,6 +24,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             "password",
         ]
 
+    def validate(self, attrs):
+        if len(attrs["password"]) < 8:
+            raise serializers.ValidationError(
+                {"password": "password must be 8 characters or more"}
+            )
+        return super().validate(attrs)
+
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
     """User change password serializer"""
@@ -36,6 +43,13 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
         model = Users
         fields = ["old_password", "new_password"]
+
+    def validate(self, attrs):
+        if len(attrs["new_password"]) < 8:
+            raise serializers.ValidationError(
+                {"password": "password must be 8 characters or more"}
+            )
+        return super().validate(attrs)
 
 
 class RequestPasswordResetEmail(serializers.ModelSerializer):
