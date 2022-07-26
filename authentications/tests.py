@@ -19,7 +19,6 @@ class TestSetup(APITestCase):
             username="admin", email_address="admin@admin.com", password="admin1234"
         )
         self.token = RefreshToken.for_user(self.user)
-
         return super().setUp()
 
 
