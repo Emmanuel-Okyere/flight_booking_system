@@ -1,6 +1,4 @@
 """Serializer class for User account"""
-from logging import exception
-from pyexpat import model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from authentications.models import Users
