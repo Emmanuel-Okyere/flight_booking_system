@@ -27,6 +27,7 @@ from authentications.api.serializer import (
 )
 from authentications.models import Users
 from authentications.exceptions import UserNotFound, InvalidLink
+from authentications.email_service import custom_send_email
 
 # Create your views here.
 class IsSuperUser(IsAdminUser):
@@ -186,14 +187,15 @@ class RequestResetPasswordEmail(GenericAPIView):
                 email = serializer.data["email_address"]
                 user = self.queryset.get(email_address=email)
                 password_reset_token = default_token_generator.make_token(user)
-                send_mail(
-                    "Email Verification Link",
-                    f"Password Reset link:{os.getenv('VERIFY_HOSTNAME')}accounts/reset-password/confirm/?iam={email}&def={password_reset_token}\n\n\
-                    Do not share this link with anyone.\n\
-                    This link can only be used once",
-                    os.getenv("EMAIL_HOST_USER"),
-                    [email],
-                )
+                # send_mail(
+                #     "Email Verification Link",
+                #     f"Password Reset link:{os.getenv('VERIFY_HOSTNAME')}accounts/reset-password/confirm/?iam={email}&def={password_reset_token}\n\n\
+                #     Do not share this link with anyone.\n\
+                #     This link can only be used once",
+                #     os.getenv("EMAIL_HOST_USER"),
+                #     [email],
+                # )
+                custom_send_email(email=email, confirmation_token=password_reset_token)
                 return Response({"status": "sucess", "detail": "reset email sent"})
             except Users.DoesNotExist as exc:
                 raise UserNotFound from exc
