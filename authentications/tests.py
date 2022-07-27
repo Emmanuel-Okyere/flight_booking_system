@@ -21,10 +21,18 @@ class TestSetup(APITestCase):
             username="admin", email_address="admin@admin.com", password="admin1234"
         )
         self.google_token = {
-            "token": "ya29.A0AVA9y1udqfDpB78diBAJU-VkhF1KiAU7QctcITAnweczwG_cS1WzGBMkWthxrPBJeK_GZzFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_NQhORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvXBwozXFp04AYUNnWUtBVEFTQVRBU0ZRRTY1ZHI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
+            "token": "ya29.A0AVA9y1udqfDpB78diBAJU-VkhF1KiAU7QctcITAnweczwG_c\
+                S1WzGBMkWthxrPBJeK_GZzFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_NQ\
+                    hORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvXBwozXFp04AYU\
+                        NnWUtBVEFTQVRBU0ZRRTY1ZHI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
         }
         self.invalid_google_token = {
-            "token": "yqw.A0AVA9y1udqfDpB78diBAJU-VkhF1KiAU7QctcITAnweczwG_cS1WzGBMkWthxrPBJeK_GZzFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_NQhORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvXBwozXFp04AYUNnWUtBVEFTQVRBU0ZRRTY1ZHI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
+            "token": "yqw.A0AVA9y1udqfDpB78diBAJU-VkhF1K\
+                iAU7QctcITAnweczwG_cS1WzGBMkWthxrPBJeK_GZ\
+                    zFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_N\
+                        QhORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvX\
+                            BwozXFp04AYUNnWUtBVEFTQVRBU0ZRRTY1Z\
+                                HI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
         }
         self.token = RefreshToken.for_user(self.user)
         return super().setUp()
@@ -42,7 +50,7 @@ class TestUserRegistration(TestSetup):
             "password": "test1234",
         }
         response = self.client.post(register_url, data, format="json")
-        # import pdb
+
         # pdb.set_trace()
         self.assertEqual(response.status_code, 201)
 
@@ -77,7 +85,10 @@ class TestUserLogin(TestSetup):
 
 
 class ChangeUserPassword(TestSetup):
+    """Change password API endpoint test cases"""
+
     def test_users_can_change_password(self):
+        """Test to check if authenticated users can change their password"""
         self.client.credentials(
             HTTP_AUTHORIZATION="Bearer " + str(self.token.access_token)
         )
@@ -89,6 +100,7 @@ class ChangeUserPassword(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_unauthenticated_users_can_not_change_paswword(self):
+        """Test to test if unauthenticated user can change their password"""
         self.client.force_authenticate(user=None)
         response = self.client.patch(
             self.change_password_url,
