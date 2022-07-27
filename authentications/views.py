@@ -1,8 +1,7 @@
 """VIews for Authentications application"""
-import os
 import random
-import requests
 import string
+import requests
 from rest_framework.utils import json
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -14,7 +13,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.base_user import BaseUserManager
-from django.core.mail import send_mail
 from requests.exceptions import ConnectionError
 from authentications.api.serializer import (
     MyTokenObtainPairSerializer,
@@ -27,7 +25,11 @@ from authentications.api.serializer import (
 )
 from authentications.models import Users
 from authentications.exceptions import UserNotFound, InvalidLink
-from authentications.email_service import custom_send_email
+from authentications.email_service import (
+    send_email_verification_mail,
+    send_reset_password_email,
+    send_admin_login_credentials_email,
+)
 
 # Create your views here.
 class IsSuperUser(IsAdminUser):
@@ -54,12 +56,7 @@ class UserRegistration(GenericAPIView):
             user = self.queryset.get(email_address=serializers.data["email_address"])
             email = serializers.data["email_address"]
             confirmation_token = default_token_generator.make_token(user)
-            send_mail(
-                "Email Verification Link",
-                f"Email Verification link:{os.getenv('VERIFY_HOSTNAME')}accounts/verify-email/?iam={email}&def={confirmation_token}\n\n\n\n\n\n Do not share this link with anyone.\n This link can only be used once",
-                os.getenv("EMAIL_HOST_USER"),
-                [email],
-            )
+            send_email_verification_mail(email=email, token=confirmation_token)
             return Response(
                 {
                     "status": "sucess",
@@ -187,15 +184,7 @@ class RequestResetPasswordEmail(GenericAPIView):
                 email = serializer.data["email_address"]
                 user = self.queryset.get(email_address=email)
                 password_reset_token = default_token_generator.make_token(user)
-                # send_mail(
-                #     "Email Verification Link",
-                #     f"Password Reset link:{os.getenv('VERIFY_HOSTNAME')}accounts/reset-password/confirm/?iam={email}&def={password_reset_token}\n\n\
-                #     Do not share this link with anyone.\n\
-                #     This link can only be used once",
-                #     os.getenv("EMAIL_HOST_USER"),
-                #     [email],
-                # )
-                custom_send_email(email=email, confirmation_token=password_reset_token)
+                send_reset_password_email(email=email, token=password_reset_token)
                 return Response({"status": "sucess", "detail": "reset email sent"})
             except Users.DoesNotExist as exc:
                 raise UserNotFound from exc
@@ -320,19 +309,7 @@ class ManagerRegisterUserView(GenericAPIView):
             password = self.generate_random_password()
             self.queryset.create_admin(**serializer.data, password=password)
             email = serializer.data["email_address"]
-            send_mail(
-                "Account Creation Credentials",
-                f"Account created on Flight Management System by Manager {request.user.first_name}\n\
-                Below are your login credentials:\n\
-                Email Address : {email}\n\
-                Password: {password}\n\
-                Do not share this credentials with anyone.\n\
-                You would be required to change password after login\n\
-                Regards.\n\
-                Manager{request.user.first_name}.",
-                os.getenv("EMAIL_HOST_USER"),
-                [email],
-            )
+            send_admin_login_credentials_email(email=email, password=password)
             return Response(
                 {
                     "status": "success",
