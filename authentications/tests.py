@@ -1,4 +1,6 @@
 """Test cases for authentication application"""
+import os
+
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -20,20 +22,8 @@ class TestSetup(APITestCase):
         self.user = Users.objects.create_superuser(
             username="admin", email_address="admin@admin.com", password="admin1234"
         )
-        self.google_token = {
-            "token": "ya29.A0AVA9y1udqfDpB78diBAJU-VkhF1KiAU7QctcITAnweczwG_c\
-                S1WzGBMkWthxrPBJeK_GZzFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_NQ\
-                    hORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvXBwozXFp04AYU\
-                        NnWUtBVEFTQVRBU0ZRRTY1ZHI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
-        }
-        self.invalid_google_token = {
-            "token": "yqw.A0AVA9y1udqfDpB78diBAJU-VkhF1K\
-                iAU7QctcITAnweczwG_cS1WzGBMkWthxrPBJeK_GZ\
-                    zFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_N\
-                        QhORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvX\
-                            BwozXFp04AYUNnWUtBVEFTQVRBU0ZRRTY1Z\
-                                HI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
-        }
+        self.google_token = {"token": os.getenv("GOOGLE_TOKEN")}
+        self.invalid_google_token = {"token": os.getenv("GOOGLE_INVALID_TOKEN")}
         self.token = RefreshToken.for_user(self.user)
         return super().setUp()
 

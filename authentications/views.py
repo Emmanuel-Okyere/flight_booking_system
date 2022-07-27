@@ -26,6 +26,7 @@ from authentications.api.serializer import (
     ManagerRegisterAdminSerializer,
 )
 from authentications.models import Users
+from authentications.exceptions import UserNotFound, InvalidLink
 
 # Create your views here.
 class IsSuperUser(IsAdminUser):
@@ -109,15 +110,9 @@ class EmailVerification(GenericAPIView):
                         status=status.HTTP_200_OK,
                     )
             else:
-                return Response(
-                    {"status": "failure", "detail": "link invalid"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except Users.DoesNotExist:
-            return Response(
-                {"status": "failure", "detail": "User with link does not exist"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+                raise InvalidLink
+        except Users.DoesNotExist as exc:
+            raise UserNotFound from exc
 
 
 class UserLogin(TokenObtainPairView):
@@ -200,11 +195,8 @@ class RequestResetPasswordEmail(GenericAPIView):
                     [email],
                 )
                 return Response({"status": "sucess", "detail": "reset email sent"})
-            except Users.DoesNotExist:
-                return Response(
-                    {"status": "failure", "detail": "User with email does not exist"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+            except Users.DoesNotExist as exc:
+                raise UserNotFound from exc
         return Response(
             {"status": "failure", "detail": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
@@ -232,15 +224,9 @@ class ResetPasswordLinkVerify(GenericAPIView):
                     status=status.HTTP_200_OK,
                 )
             else:
-                return Response(
-                    {"status": "failure", "detail": "link invalid"},
-                    status=status.HTTP_200_OK,
-                )
-        except Users.DoesNotExist:
-            return Response(
-                {"status": "failure", "detail": "User with link does not exist"},
-                status=status.HTTP_200_OK,
-            )
+                raise InvalidLink
+        except Users.DoesNotExist as exc:
+            raise UserNotFound from exc
 
 
 class ResetPasswordView(GenericAPIView):
@@ -269,13 +255,10 @@ class ResetPasswordView(GenericAPIView):
                 else:
                     return Response(
                         {"status": "failure", "detail": "token invalid"},
-                        status=status.HTTP_200_OK,
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
-            except Users.DoesNotExist:
-                return Response(
-                    {"status": "failure", "detail": "user not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+            except Users.DoesNotExist as exc:
+                raise UserNotFound from exc
         return Response(
             {"status": "failure", "detail": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
