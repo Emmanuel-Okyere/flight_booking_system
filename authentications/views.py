@@ -434,5 +434,6 @@ class GoogleLoginView(GenericAPIView):
                     "is_admin": user.is_admin,
                     "is_superuser": user.is_superuser,
                 },
-            }
+            },
+            status=status.HTTP_200_OK,
         )

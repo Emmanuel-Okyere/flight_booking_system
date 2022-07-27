@@ -14,10 +14,18 @@ class TestSetup(APITestCase):
         """Setup of the test"""
         self.register_url = "/accounts/register/"
         self.login_url = "/accounts/login/"
+        self.google_url = "/accounts/google/"
+        self.change_password_url = "/accounts/change-password/"
         self.admin_register_url = "/accounts/register-admin/"
         self.user = Users.objects.create_superuser(
             username="admin", email_address="admin@admin.com", password="admin1234"
         )
+        self.google_token = {
+            "token": "ya29.A0AVA9y1udqfDpB78diBAJU-VkhF1KiAU7QctcITAnweczwG_cS1WzGBMkWthxrPBJeK_GZzFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_NQhORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvXBwozXFp04AYUNnWUtBVEFTQVRBU0ZRRTY1ZHI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
+        }
+        self.invalid_google_token = {
+            "token": "yqw.A0AVA9y1udqfDpB78diBAJU-VkhF1KiAU7QctcITAnweczwG_cS1WzGBMkWthxrPBJeK_GZzFNYct1iUq_ngJqFTvHOoy7u_u4pUi-r3X3Q_NQhORJ3It_QSFp3nFI2MDt-dA1qi1p0mx1dNvbvXBwozXFp04AYUNnWUtBVEFTQVRBU0ZRRTY1ZHI4WldraWpMYm9LeS1FRko0R2twcTlWdw0163"
+        }
         self.token = RefreshToken.for_user(self.user)
         return super().setUp()
 
@@ -68,6 +76,19 @@ class TestUserLogin(TestSetup):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
+class ChangeUserPassword(TestSetup):
+    def test_users_can_change_password(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Bearer " + str(self.token.access_token)
+        )
+        response = self.client.patch(
+            self.change_password_url,
+            {"old_password": "admin1234", "new_password": "newPassword123"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class TestManagerRegisterAdmin(TestSetup):
     """Api test for manager registration of users"""
 
@@ -92,3 +113,19 @@ class TestManagerRegisterAdmin(TestSetup):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class TestGoogleUSerLogin(TestSetup):
+    """Test to check google users can login"""
+
+    def test_google_user_can_login(self):
+        """Test to check google users can login"""
+        response = self.client.post(self.google_url, self.google_token, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_invalid_google_users_cannot_get_access(self):
+        """Test to check invalid google users can not login"""
+        response = self.client.post(
+            self.google_url, self.invalid_google_token, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
