@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "authentications",
     "django_email_verification",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [

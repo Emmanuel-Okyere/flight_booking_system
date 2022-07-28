@@ -172,6 +172,29 @@ class ChangePassword(GenericAPIView):
             )
 
 
+class UserLogOut(GenericAPIView):
+    """Logout API view to blacklist refresh token"""
+
+    queryset = Users.objects
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        """Reseting refresh token to blacklist it from getting new token"""
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(
+                {"status": "success", "detail": "logout successful"},
+                status=status.HTTP_205_RESET_CONTENT,
+            )
+        except KeyError:
+            return Response(
+                {"status": "failure", "detail": "Logout Unsuccessful"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 class RequestResetPasswordEmail(GenericAPIView):
     """VIew for user to request password change email"""
 
