@@ -12,6 +12,7 @@ from authentications.views import (
     ResetPasswordView,
     ManagerRegisterUserView,
     GoogleLoginView,
+    UserLogOut,
 )
 
 
@@ -20,6 +21,7 @@ urlpatterns = [
     path("register-admin/", ManagerRegisterUserView.as_view(), name="register_admin"),
     path("user/", UserDetails.as_view(), name="details"),
     path("login/", UserLogin.as_view(), name="login"),
+    path("logout/", UserLogOut.as_view(), name="logout"),
     path("verify-email/", EmailVerification.as_view(), name="email_verify"),
     path("change-password/", ChangePassword.as_view(), name="change_password"),
     path("reset-password/", RequestResetPasswordEmail.as_view(), name="reset-password"),

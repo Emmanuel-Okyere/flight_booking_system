@@ -55,8 +55,11 @@ class UserRegistration(GenericAPIView):
             self.queryset.create_user(**serializers.data)
             user = self.queryset.get(email_address=serializers.data["email_address"])
             email = serializers.data["email_address"]
+            first_name = user.first_name
             confirmation_token = default_token_generator.make_token(user)
-            send_email_verification_mail(email=email, token=confirmation_token)
+            send_email_verification_mail(
+                first_name=first_name, email=email, token=confirmation_token
+            )
             return Response(
                 {
                     "status": "sucess",
@@ -169,6 +172,29 @@ class ChangePassword(GenericAPIView):
             )
 
 
+class UserLogOut(GenericAPIView):
+    """Logout API view to blacklist refresh token"""
+
+    queryset = Users.objects
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        """Reseting refresh token to blacklist it from getting new token"""
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(
+                {"status": "success", "detail": "logout successful"},
+                status=status.HTTP_205_RESET_CONTENT,
+            )
+        except KeyError:
+            return Response(
+                {"status": "failure", "detail": "Logout Unsuccessful"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 class RequestResetPasswordEmail(GenericAPIView):
     """VIew for user to request password change email"""
 
@@ -184,7 +210,10 @@ class RequestResetPasswordEmail(GenericAPIView):
                 email = serializer.data["email_address"]
                 user = self.queryset.get(email_address=email)
                 password_reset_token = default_token_generator.make_token(user)
-                send_reset_password_email(email=email, token=password_reset_token)
+                first_name = user.first_name
+                send_reset_password_email(
+                    first_name=first_name, email=email, token=password_reset_token
+                )
                 return Response({"status": "sucess", "detail": "reset email sent"})
             except Users.DoesNotExist as exc:
                 raise UserNotFound from exc
@@ -309,7 +338,10 @@ class ManagerRegisterUserView(GenericAPIView):
             password = self.generate_random_password()
             self.queryset.create_admin(**serializer.data, password=password)
             email = serializer.data["email_address"]
-            send_admin_login_credentials_email(email=email, password=password)
+            first_name = serializer.data["first_name"]
+            send_admin_login_credentials_email(
+                first_name=first_name, email=email, password=password
+            )
             return Response(
                 {
                     "status": "success",

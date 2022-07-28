@@ -18,42 +18,54 @@
   - [JSON Body](#json-body-1)
   - [Error Responses](#error-responses-2)
   - [Successful Response Example](#successful-response-example-2)
-- [Google Authentication](#google-authentication)
+- [Logout](#logout)
   - [Request Information](#request-information-3)
   - [Header](#header-3)
   - [JSON Body](#json-body-2)
   - [Error Responses](#error-responses-3)
   - [Successful Response Example](#successful-response-example-3)
-- [Change Password](#change-password)
+- [Refresh Token](#refresh-token)
   - [Request Information](#request-information-4)
   - [Header](#header-4)
   - [JSON Body](#json-body-3)
   - [Error Responses](#error-responses-4)
   - [Successful Response Example](#successful-response-example-4)
-- [Register Admin User](#register-admin-user)
+- [Google Authentication](#google-authentication)
   - [Request Information](#request-information-5)
   - [Header](#header-5)
   - [JSON Body](#json-body-4)
   - [Error Responses](#error-responses-5)
   - [Successful Response Example](#successful-response-example-5)
-- [Reset Password](#reset-password)
+- [Change Password](#change-password)
   - [Request Information](#request-information-6)
   - [Header](#header-6)
   - [JSON Body](#json-body-5)
   - [Error Responses](#error-responses-6)
   - [Successful Response Example](#successful-response-example-6)
-- [Verify Password Reset Link](#verify-password-reset-link)
+- [Register Admin User](#register-admin-user)
   - [Request Information](#request-information-7)
   - [Header](#header-7)
-  - [Params Body](#params-body-1)
+  - [JSON Body](#json-body-6)
   - [Error Responses](#error-responses-7)
   - [Successful Response Example](#successful-response-example-7)
-- [Reset Forgotten Password](#reset-forgotten-password)
+- [Reset Password](#reset-password)
   - [Request Information](#request-information-8)
   - [Header](#header-8)
-  - [JSON Body](#json-body-6)
+  - [JSON Body](#json-body-7)
   - [Error Responses](#error-responses-8)
   - [Successful Response Example](#successful-response-example-8)
+- [Verify Password Reset Link](#verify-password-reset-link)
+  - [Request Information](#request-information-9)
+  - [Header](#header-9)
+  - [Params Body](#params-body-1)
+  - [Error Responses](#error-responses-9)
+  - [Successful Response Example](#successful-response-example-9)
+- [Reset Forgotten Password](#reset-forgotten-password)
+  - [Request Information](#request-information-10)
+  - [Header](#header-10)
+  - [JSON Body](#json-body-8)
+  - [Error Responses](#error-responses-10)
+  - [Successful Response Example](#successful-response-example-10)
 
 
 <a name="registration"></a>
@@ -217,6 +229,91 @@ identity.
         "is_admin": true,
         "is_superuser": false
     }
+}
+```
+
+<a name="Logout"></a>
+
+## Logout
+
+This Api endpoint accepts the refresh token used to get new tokens and blacklist it.
+
+
+### Request Information
+
+| Type | URL               |
+| ---- | ----------------- |
+| POST | /accounts/logout/ |
+
+### Header
+
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | POST, OPTIONS    |
+| Content-Type | application/json |
+| Vary         | Accept           |
+
+
+### JSON Body
+
+| Property Name | type   | required | Description                                |
+| ------------- | ------ | -------- | ------------------------------------------ |
+| refresh_token | string | true     | token used to get a new token after expiry |
+
+### Error Responses
+
+| Code | Message         |
+| ---- | --------------- |
+| 400  | Token not valid |
+
+### Successful Response Example
+
+```
+{
+    "status": "success", 
+    "detail": "logout successful"
+}
+```
+
+<a name="refresh-token"></a>
+
+## Refresh Token
+
+This Api endpoint accepts the refresh token used to get new tokens when actual tokens expires.
+
+
+### Request Information
+
+| Type | URL                            |
+| ---- | ------------------------------ |
+| POST | /accounts/login/token/refresh/ |
+
+### Header
+
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | POST, OPTIONS    |
+| Content-Type | application/json |
+| Vary         | Accept           |
+
+
+### JSON Body
+
+| Property Name | type   | required | Description                                |
+| ------------- | ------ | -------- | ------------------------------------------ |
+| refresh       | string | true     | token used to get a new token after expiry |
+
+### Error Responses
+
+| Code | Message              |
+| ---- | -------------------- |
+| 401  | Token is blacklisted |
+
+### Successful Response Example
+
+```
+{
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU5MDQwNzk5LCJpYXQiOjE2NTkwNDA0ODQsImp0aSI6IjZmZDg3YmE1OTc5ZDQxMTJiMzgxNTFmZjg5ZTU0OTlhIiwidXNlcl9pZCI6NH0.YZCwngLLVSIiJy20Z5yAvvoDrfv6OGTEoKHPvnGfIbQ"
 }
 ```
 

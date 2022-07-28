@@ -1,6 +1,6 @@
 """Test cases for authentication application"""
 import os
-
+import pdb
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,6 +16,7 @@ class TestSetup(APITestCase):
         """Setup of the test"""
         self.register_url = "/accounts/register/"
         self.login_url = "/accounts/login/"
+        self.logout_url = "/accounts/logout/"
         self.google_url = "/accounts/google/"
         self.change_password_url = "/accounts/change-password/"
         self.admin_register_url = "/accounts/register-admin/"
@@ -25,6 +26,7 @@ class TestSetup(APITestCase):
         self.google_token = {"token": os.getenv("GOOGLE_TOKEN")}
         self.invalid_google_token = {"token": os.getenv("GOOGLE_INVALID_TOKEN")}
         self.token = RefreshToken.for_user(self.user)
+        self.refresh_token = str(self.token)
         return super().setUp()
 
 
@@ -72,6 +74,17 @@ class TestUserLogin(TestSetup):
             format="json",
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_user_logout(self):
+        """Test users can logout successful"""
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Bearer " + str(self.token.access_token)
+        )
+        response = self.client.post(
+            self.logout_url, {"refresh_token": self.refresh_token}, format="json"
+        )
+        # pdb.set_trace()
+        self.assertEqual(response.status_code, status.HTTP_205_RESET_CONTENT)
 
 
 class ChangeUserPassword(TestSetup):
