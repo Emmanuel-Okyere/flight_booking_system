@@ -66,6 +66,12 @@
   - [JSON Body](#json-body-8)
   - [Error Responses](#error-responses-10)
   - [Successful Response Example](#successful-response-example-10)
+- [Admin Create Flight](#admin-create-flight)
+  - [Request Information](#request-information-11)
+  - [Header](#header-11)
+  - [JSON Body](#json-body-9)
+  - [Error Responses](#error-responses-11)
+  - [Successful Response Example](#successful-response-example-11)
 
 
 <a name="registration"></a>
@@ -615,3 +621,64 @@ This api will allow users to reset their passwords.
     "detail": "Password reset successful"
 }
 ```
+
+<a name="admin-create-flight"></a>
+
+## Admin Create Flight
+
+The create endpoint will accept allow admin user create flight for the system and view all flights created:
+
+### Request Information
+
+| Type | URL                   |
+| ---- | --------------------- |
+| GET  | /flight/admin/create/ |
+| POST | /flight/admin/create/ |
+
+### Header
+
+| Type         | Property name     |
+| ------------ | ----------------- |
+| Allow        | GET,POST, OPTIONS |
+| Content-Type | application/json  |
+| Vary         | Accept            |
+
+### JSON Body
+
+| Property Name     | type   | required | Description                            |
+| ----------------- | ------ | -------- | -------------------------------------- |
+| flight_name       | String | false    | The name of the flight                 |
+| source            | String | false    | The original start point of the flight |
+| destination       | String | true     | The destination of the flight          |
+| price_per_seat    | String | true     | The price of each seat in the flight   |
+| seats_available   | String | false    | The number of seats available          |
+| plane_name        | String | true     | The name of the aeroplane              |
+| time_of_departure | String | true     | The time of departure                  |
+| time_of_arrival   | String | true     | Estimated time of arrival              |
+
+### Error Responses
+
+| Code | Message       |
+| ---- | ------------- |
+| 400  | "Bad request" |
+
+
+### Successful Response Example
+
+```
+{
+    "status": "success",
+    "detail": "flight created",
+    "data": {
+        "flight_name": "Ceasar Air",
+        "source": "Ghana",
+        "destination": "Egland",
+        "price_per_seat": "300.00",
+        "seats_available": 40,
+        "plane_name": "AWA",
+        "time_of_departure": "2022-10-06T12:45:00Z",
+        "time_of_arrival": "2022-10-06T16:45:00Z"
+    }
+}
+```
+
