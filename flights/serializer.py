@@ -10,6 +10,8 @@ class AdminCreateFlightSerializer(serializers.ModelSerializer):
 
 
 class ManagetUpdateFLightSerializer(serializers.ModelSerializer):
+    is_approved = serializers.BooleanField()
+
     class Meta:
         model = Flights
-        fields = "__all__"
+        fields = ["is_approved"]

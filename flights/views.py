@@ -1,7 +1,9 @@
+from functools import partial
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
+from authentications.views import IsAdmin, IsSuperUser
 from flights.models import Flights
 from flights.serializer import (
     AdminCreateFlightSerializer,
@@ -10,20 +12,17 @@ from flights.serializer import (
 from flights.exceptions import FlightNotFound
 
 # Create your views here.
-class IsAdmin(IsAdminUser):
-    """Checking to see if the current user is Admin user authentication"""
-
-    def has_permission(self, request, view):
-        """When called, gives the user permissions to some views"""
-        return bool(request.user and request.user.is_superuser is False)
 
 
 class AdminCreateFlight(ListAPIView):
+    """Admin creating flight view"""
+
     queryset = Flights.objects.all()
     serializer_class = AdminCreateFlightSerializer
     permission_classes = (IsAuthenticated, IsAdmin)
 
     def post(self, request):
+        """Post request to create new flight"""
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             data = self.queryset.create(**serializer.data)
@@ -42,11 +41,14 @@ class AdminCreateFlight(ListAPIView):
 
 
 class ManagerUpdatesFlights(RetrieveAPIView):
+    """Manager approving upfated by the admin users"""
+
     queryset = Flights.objects.all()
     serializer_class = ManagetUpdateFLightSerializer
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, IsSuperUser)
 
     def patch(self, request, pk):
+        """Patch request to update the fields"""
         try:
             flight_object = Flights.objects.get(pk=pk)
             serializer = self.serializer_class(flight_object, request.data)
@@ -64,11 +66,15 @@ class ManagerUpdatesFlights(RetrieveAPIView):
                     },
                     status=status.HTTP_200_OK,
                 )
-            return Response({"status": "failure", "detail": serializer.errors})
+            return Response(
+                {"status": "failure", "detail": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Flights.DoesNotExist as exc:
             raise FlightNotFound from exc
 
     def delete(self, request, pk):
+        """Delete method to delete an object from the database"""
         try:
             flight_object = Flights.objects.get(pk=pk)
             flight_object.delete()
