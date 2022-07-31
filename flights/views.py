@@ -33,7 +33,8 @@ class AdminCreateFlight(ListAPIView):
                     "status": "success",
                     "detail": "flight created",
                     "data": serializer.data,
-                }
+                },
+                status=status.HTTP_201_CREATED,
             )
         return Response(
             {"status": "failure", "detail": serializer.errors},
