@@ -1,5 +1,5 @@
 from re import A
-from django.urls import path, include
+from django.urls import path
 from flights.views import AdminCreateFlight, ManagerUpdatesFlights
 
 urlpatterns = [
