@@ -40,6 +40,14 @@ class IsSuperUser(IsAdminUser):
         return bool(request.user and request.user.is_superuser)
 
 
+class IsAdmin(IsAdminUser):
+    """Checking to see if the current user is Admin user authentication"""
+
+    def has_permission(self, request, view):
+        """When called, gives the user permissions to some views"""
+        return bool(request.user and request.user.is_superuser is False)
+
+
 class UserRegistration(GenericAPIView):
     """User resgistration view class"""
 
