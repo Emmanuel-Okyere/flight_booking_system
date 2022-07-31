@@ -12,6 +12,7 @@ class Flights(models.Model):
     plane_name = models.CharField(max_length=150, null=False)
     time_of_departure = models.DateTimeField()
     time_of_arrival = models.DateTimeField()
+    is_approved = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now_add=True)
 

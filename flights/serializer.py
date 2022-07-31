@@ -7,3 +7,9 @@ class AdminCreateFlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flights
         fields = "__all__"
+
+
+class ManagetUpdateFLightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flights
+        fields = "__all__"
