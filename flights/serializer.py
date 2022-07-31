@@ -6,7 +6,7 @@ from flights.models import Flights
 class AdminCreateFlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flights
-        fields = "__all__"
+        exclude = ["is_approved"]
 
 
 class ManagetUpdateFLightSerializer(serializers.ModelSerializer):
@@ -15,3 +15,9 @@ class ManagetUpdateFLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flights
         fields = ["is_approved"]
+
+
+class ManagerGetsAllFlightsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flights
+        fields = "__all__"

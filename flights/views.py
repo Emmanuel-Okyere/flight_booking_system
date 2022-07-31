@@ -8,6 +8,7 @@ from flights.models import Flights
 from flights.serializer import (
     AdminCreateFlightSerializer,
     ManagetUpdateFLightSerializer,
+    ManagerGetsAllFlightsSerializer,
 )
 from flights.exceptions import FlightNotFound
 
@@ -40,18 +41,18 @@ class AdminCreateFlight(ListAPIView):
         )
 
 
-class ManagerUpdatesFlights(RetrieveAPIView):
+class ManagerUpdatesFlights(ListAPIView, RetrieveAPIView):
     """Manager approving upfated by the admin users"""
 
     queryset = Flights.objects.all()
-    serializer_class = ManagetUpdateFLightSerializer
+    serializer_class = ManagerGetsAllFlightsSerializer
     permission_classes = (IsAuthenticated, IsSuperUser)
 
     def patch(self, request, pk):
         """Patch request to update the fields"""
         try:
             flight_object = Flights.objects.get(pk=pk)
-            serializer = self.serializer_class(flight_object, request.data)
+            serializer = ManagetUpdateFLightSerializer(flight_object, request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(

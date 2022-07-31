@@ -9,4 +9,9 @@ urlpatterns = [
         ManagerUpdatesFlights.as_view(),
         name="flight_update",
     ),
+    path(
+        "manager/update/",
+        ManagerUpdatesFlights.as_view(),
+        name="flight_update",
+    ),
 ]

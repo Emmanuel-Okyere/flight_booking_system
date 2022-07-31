@@ -72,6 +72,14 @@
   - [JSON Body](#json-body-9)
   - [Error Responses](#error-responses-11)
   - [Successful Response Example](#successful-response-example-11)
+- [Manager Gets, Approves, Delete Flight](#manager-gets-approves-delete-flight)
+  - [Request Information](#request-information-12)
+  - [Header](#header-12)
+  - [Patch JSON Body](#patch-json-body)
+  - [Error Responses](#error-responses-12)
+  - [Get Successful Response Example](#get-successful-response-example)
+  - [Patch Successful Response Example](#patch-successful-response-example)
+  - [Delete Successful Response Example](#delete-successful-response-example)
 
 
 <a name="registration"></a>
@@ -203,6 +211,7 @@ identity.
 | Allow        | POST, OPTIONS    |
 | Content-Type | application/json |
 | Vary         | Accept           |
+
 
 
 ### JSON Body
@@ -446,11 +455,11 @@ This API endpoint is used to create admin users. Upon creation, email is sent to
 | POST | /accounts/register-admin/ |
 ### Header
 
-| Type          | Property name         |
-| ------------- | --------------------- |
-| Allow         | POST                  |
-| Content-Type  | application/json      |
-| Authorization | Bearer {TOKEN.access} |
+| Type          | Property name                     |
+| ------------- | --------------------------------- |
+| Allow         | POST                              |
+| Content-Type  | application/json                  |
+| Authorization | Bearer {TOKEN.access},IsSuperUser |
 
 ### JSON Body
 
@@ -637,30 +646,33 @@ The create endpoint will accept allow admin user create flight for the system an
 
 ### Header
 
-| Type         | Property name     |
-| ------------ | ----------------- |
-| Allow        | GET,POST, OPTIONS |
-| Content-Type | application/json  |
-| Vary         | Accept            |
+| Type          | Property name                 |
+| ------------- | ----------------------------- |
+| Allow         | GET,POST, OPTIONS             |
+| Content-Type  | application/json              |
+| Vary          | Accept                        |
+| Authorization | Bearer {TOKEN.access},IsAdmin |
+
 
 ### JSON Body
 
-| Property Name     | type   | required | Description                            |
-| ----------------- | ------ | -------- | -------------------------------------- |
-| flight_name       | String | false    | The name of the flight                 |
-| source            | String | false    | The original start point of the flight |
-| destination       | String | true     | The destination of the flight          |
-| price_per_seat    | String | true     | The price of each seat in the flight   |
-| seats_available   | String | false    | The number of seats available          |
-| plane_name        | String | true     | The name of the aeroplane              |
-| time_of_departure | String | true     | The time of departure                  |
-| time_of_arrival   | String | true     | Estimated time of arrival              |
+| Property Name     | type     | required | Description                            |
+| ----------------- | -------- | -------- | -------------------------------------- |
+| flight_name       | String   | True     | The name of the flight                 |
+| source            | String   | True     | The original start point of the flight |
+| destination       | String   | True     | The destination of the flight          |
+| price_per_seat    | Decimal  | true     | The price of each seat in the flight   |
+| seats_available   | Integer  | True     | The number of seats available          |
+| plane_name        | String   | true     | The name of the aeroplane              |
+| time_of_departure | Datetime | true     | The time of departure                  |
+| time_of_arrival   | Datetime | true     | Estimated time of arrival              |
 
 ### Error Responses
 
-| Code | Message       |
-| ---- | ------------- |
-| 400  | "Bad request" |
+| Code | Message        |
+| ---- | -------------- |
+| 401  | "Unauthorized" |
+| 400  | "Bad request"  |
 
 
 ### Successful Response Example
@@ -682,3 +694,87 @@ The create endpoint will accept allow admin user create flight for the system an
 }
 ```
 
+
+<a name="manager-updates-flight"></a>
+
+## Manager Gets, Approves, Delete Flight
+
+This API endpoints allows Managers to approve flight created by the admin, and delete flights where neccesary.
+
+**Note** Be sure to get the id when making a patch or delete request.
+
+### Request Information
+
+| Type   | URL                              |
+| ------ | -------------------------------- |
+| GET    | /flight/manager/update/          |
+| PATCH  | /flight/manager/update/<int:pk>/ |
+| DELETE | /flight/manager/update/<int:pk>/ |
+
+### Header
+
+| Type          | Property name                     |
+| ------------- | --------------------------------- |
+| Allow         | GET,PATCH,DELETE, OPTIONS         |
+| Content-Type  | application/json                  |
+| Vary          | Accept                            |
+| Authorization | Bearer {TOKEN.access},IsSuperUser |
+
+
+### Patch JSON Body
+
+| Property Name | type    | required | Description                                    |
+| ------------- | ------- | -------- | ---------------------------------------------- |
+| is_approved   | Boolean | True     | The boolean field that approves flight details |
+
+### Error Responses
+
+| Code | Message            |
+| ---- | ------------------ |
+| 400  | "Bad request"      |
+| 404  | "Flight Not Found" |
+| 401  | "Unauthorized"     |
+
+
+### Get Successful Response Example
+
+```
+[
+    {
+        "id": 4,
+        "flight_name": "Ceasar Air",
+        "source": "Ghana",
+        "destination": "Egland",
+        "price_per_seat": "300.00",
+        "seats_available": 40,
+        "plane_name": "AWA",
+        "time_of_departure": "2022-10-06T12:45:00Z",
+        "time_of_arrival": "2022-10-06T16:45:00Z",
+        "is_approved": false,
+        "created": "2022-07-30T18:46:31.744183Z",
+        "updated": "2022-07-30T18:46:31.744183Z"
+    }
+]
+```
+
+### Patch Successful Response Example
+
+```
+{
+    "status": "sucess",
+    "detail": "flight update success",
+    "data": {
+        "flight_id": 2,
+        "price_per_seat": 300.0,
+        "is_approved": true
+    }
+}
+```
+### Delete Successful Response Example
+
+```
+{
+    "status": "sucess",
+    "detail": "flight delete success"
+}
+```
