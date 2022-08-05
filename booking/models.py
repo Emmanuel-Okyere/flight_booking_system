@@ -8,7 +8,7 @@ class Booking(models.Model):
 
     flight_id = models.ForeignKey(Flights, on_delete=models.CASCADE)
     user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
-    seat_number = models.IntegerField()
+    seat_number = models.IntegerField(default=1)
     payment_id = models.IntegerField()
     is_booked = models.BooleanField(default=False)
     type_of_seats = models.CharField(max_length=120)

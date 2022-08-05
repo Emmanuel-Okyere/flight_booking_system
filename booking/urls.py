@@ -1,6 +1,6 @@
 from django.urls import path
-from flights.views import AdminCreateFlight, ManagerUpdatesFlights
+from booking.views import UserBookingView
 
 urlpatterns = [
-    path("create/", AdminCreateFlight.as_view(), name="flight_create"),
+    path("create/", UserBookingView.as_view(), name="booking_create"),
 ]
