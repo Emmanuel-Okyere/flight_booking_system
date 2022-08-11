@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "authentications",
     "flights",
     "booking",
+    "payment",
     "django_email_verification",
     "rest_framework_simplejwt.token_blacklist",
 ]
