@@ -6,7 +6,7 @@ from flights.models import Flights
 class UserBookFlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = "__all__"
+        exclude = ["user_id"]
 
 
 class UserGetAllFlightsAvailable(serializers.ModelSerializer):

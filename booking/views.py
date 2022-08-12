@@ -24,7 +24,7 @@ class UserBookingView(ListAPIView):
         try:
             if serializer.is_valid():
                 flight_id = serializer.validated_data["flight_id"]
-                user_id = serializer.validated_data["user_id"]
+                user_id = request.user
                 seat_number = serializer.validated_data["seat_number"]
                 is_booked = serializer.validated_data["is_booked"]
                 type_of_seats = serializer.validated_data["type_of_seats"]
@@ -47,7 +47,12 @@ class UserBookingView(ListAPIView):
                         flight_object.update(
                             seats_available=flight_get_object.seats_available - 1
                         )
-                        serializer.save()
+                        Booking.objects.create(
+                            flight_id=flight_id,
+                            user_id=user_id,
+                            seat_number=seat_number,
+                            type_of_seats=type_of_seats,
+                        )
                         return Response(
                             {
                                 "status": "success",

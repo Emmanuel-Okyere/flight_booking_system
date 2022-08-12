@@ -21,4 +21,5 @@ urlpatterns = [
     path("accounts/", include("authentications.urls"), name="authentications"),
     path("flight/", include("flights.urls"), name="flights"),
     path("book/", include("booking.urls"), name="booking"),
+    path("payment/", include("payment.urls"), name="payment"),
 ]
