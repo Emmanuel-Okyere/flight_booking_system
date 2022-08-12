@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "authentications",
     "flights",
+    "booking",
+    "payment",
     "django_email_verification",
     "rest_framework_simplejwt.token_blacklist",
 ]
@@ -143,3 +145,5 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
+
+PAYSTACK_TEST_SECRET = os.getenv("PAYSTACK_TEST_SECRET")
