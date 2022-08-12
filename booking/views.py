@@ -26,7 +26,6 @@ class UserBookingView(ListAPIView):
                 flight_id = serializer.validated_data["flight_id"]
                 user_id = request.user
                 seat_number = serializer.validated_data["seat_number"]
-                is_booked = serializer.validated_data["is_booked"]
                 type_of_seats = serializer.validated_data["type_of_seats"]
                 flight_object = Flights.objects.filter(id=flight_id.id)
                 flight_get_object = Flights.objects.get(id=flight_id.id)
@@ -61,7 +60,6 @@ class UserBookingView(ListAPIView):
                                     "flight": flight_id.flight_name,
                                     "user": user_id.email_address,
                                     "seat_number": seat_number,
-                                    "is_booked": is_booked,
                                     "type_of_seats": type_of_seats,
                                     "seats_available": flight_get_object.seats_available
                                     - 1,

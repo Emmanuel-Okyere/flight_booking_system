@@ -80,6 +80,23 @@
   - [Get Successful Response Example](#get-successful-response-example)
   - [Patch Successful Response Example](#patch-successful-response-example)
   - [Delete Successful Response Example](#delete-successful-response-example)
+- [User Books Flight](#user-books-flight)
+  - [Request Information](#request-information-13)
+  - [Header](#header-13)
+  - [POST JSON Body](#post-json-body)
+  - [Error Responses](#error-responses-13)
+  - [Get Successful Response Example](#get-successful-response-example-1)
+  - [POST Successful Response Example](#post-successful-response-example)
+- [User Makes Payment: Initialization](#user-makes-payment-initialization)
+  - [Request Information](#request-information-14)
+  - [Header](#header-14)
+  - [Error Responses](#error-responses-14)
+  - [POST Successful Response Example](#post-successful-response-example-1)
+- [User Makes Payment: Verification](#user-makes-payment-verification)
+  - [Request Information](#request-information-15)
+  - [Header](#header-15)
+  - [Error Responses](#error-responses-15)
+  - [GET Successful Response Example](#get-successful-response-example-2)
 
 
 <a name="registration"></a>
@@ -776,5 +793,175 @@ This API endpoints allows Managers to approve flight created by the admin, and d
 {
     "status": "sucess",
     "detail": "flight delete success"
+}
+```
+
+
+<a name="user_books_flight"></a>
+
+## User Books Flight
+
+This API endpoints allows users to book flight created by the admin, and approved by the manager.
+
+**Note** Only approved flights, are available for booking.
+
+### Request Information
+
+| Type | URL           |
+| ---- | ------------- |
+| GET  | /book/create/ |
+| POST | /book/create/ |
+
+### Header
+
+| Type          | Property name                     |
+| ------------- | --------------------------------- |
+| Allow         | GET,POST, OPTIONS                 |
+| Content-Type  | application/json                  |
+| Vary          | Accept                            |
+| Authorization | Bearer {TOKEN.access},IsSuperUser |
+
+
+### POST JSON Body
+
+| Property Name | type    | required | Description                                                            |
+| ------------- | ------- | -------- | ---------------------------------------------------------------------- |
+| fligt_id      | Integer | True     | This field is the id of the flight being booked                        |
+| seat_number   | Integer | True     | This is the field for the seat number the user wants to book           |
+| type_of_seats | Integer | True     | The choice field that specifies the type of seat the user want to book |
+
+
+### Error Responses
+
+| Code | Message               |
+| ---- | --------------------- |
+| 400  | "Bad request"         |
+| 400  | "seat already booked" |
+| 404  | "Flight Not Found"    |
+| 401  | "Unauthorized"        |
+
+
+### Get Successful Response Example
+
+```
+[
+    {
+        "id": 5,
+        "flight_name": "Ceasar Air",
+        "source": "Ghana",
+        "destination": "England",
+        "price_per_seat": "300.00",
+        "seats_available": 0,
+        "plane_name": "AWA",
+        "time_of_departure": "2022-10-06T12:45:00Z",
+        "time_of_arrival": "2022-10-06T16:45:00Z"
+    }
+]
+```
+### POST Successful Response Example
+```
+{
+    "status": "success",
+    "detail": "booking successful",
+    "data": {
+        "flight": "Ceasar Air",
+        "user": "emmanuel.gyateng@amalitech.org",
+        "seat_number": 3,
+        "type_of_seats": 1,
+        "seats_available": 35
+    }
+}
+```
+
+
+<a name="user-makes-paymentinitialization"></a>
+
+## User Makes Payment: Initialization
+
+This API endpoints allows users that have booked flight, make payment for the flightd booked
+
+**Note** When users make multiple request for booking, only one get paid.
+
+### Request Information
+
+| Type | URL              |
+| ---- | ---------------- |
+| POST | /payment/accept/ |
+
+### Header
+
+| Type          | Property name                     |
+| ------------- | --------------------------------- |
+| Allow         | POST                              |
+| Content-Type  | application/json                  |
+| Vary          | Accept                            |
+| Authorization | Bearer {TOKEN.access},IsSuperUser |
+
+
+### Error Responses
+
+| Code | Message        |
+| ---- | -------------- |
+| 400  | "Bad request"  |
+| 401  | "Unauthorized" |
+
+
+### POST Successful Response Example
+
+```
+{
+    "status": "sucess",
+    "detail": "Authorization URL created",
+    "data": {
+        "authorization_url": "https://checkout.paystack.com/016yu0v2e4jlv6t",
+        "access_code": "016yu0v2e4jlv6t",
+        "reference": "8mjnlws4sr"
+    }
+}
+```
+
+<a name="user-makes-paymentverification"></a>
+## User Makes Payment: Verification
+
+This API endpoints allows users that have make payment verify the payment made.
+
+**Note** When users have booked multiple seats, all bookings get updates with the payment id.
+
+### Request Information
+
+| Type | URL                                    |
+| ---- | -------------------------------------- |
+| GET  | /payment/accept/verify/<str:reference> |
+
+### Header
+
+| Type          | Property name                     |
+| ------------- | --------------------------------- |
+| Allow         | POST                              |
+| Content-Type  | application/json                  |
+| Vary          | Accept                            |
+| Authorization | Bearer {TOKEN.access},IsSuperUser |
+
+
+### Error Responses
+
+| Code | Message        |
+| ---- | -------------- |
+| 400  | "Bad request"  |
+| 401  | "Unauthorized" |
+
+
+### GET Successful Response Example
+
+```
+{
+    "status": "sucess",
+    "detail": "Verification successful",
+    "data": {
+        "receipt_id": 2016804408,
+        "payment_status": "paid",
+        "amount_credited": 23.0,
+        "customer_number": "CUS_v09x69ujdulk8f7"
+    }
 }
 ```

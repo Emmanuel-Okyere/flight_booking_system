@@ -67,7 +67,7 @@ class VerifyFunds(APIView):
             transaction = Payment.objects.get(paystack_payment_reference=reference)
             booking = Booking.objects.filter(user_id=request.user)
             reference = transaction.paystack_payment_reference
-            url = "https://api.paystack.co/transaction/verify/{}".format(reference)
+            url = f"https://api.paystack.co/transaction/verify/{reference}"
             headers = {"authorization": f"Bearer {settings.PAYSTACK_TEST_SECRET}"}
             r = requests.get(url, headers=headers)
             resp = r.json()
@@ -96,11 +96,10 @@ class VerifyFunds(APIView):
                     },
                     status=status.HTTP_200_OK,
                 )
-            else:
-                return Response(
-                    {"status": "failure", "detail": "payment uncessful"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            return Response(
+                {"status": "failure", "detail": "payment uncessful"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Payment.DoesNotExist:
             return Response(
                 {
