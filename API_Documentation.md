@@ -90,6 +90,7 @@
 - [User Makes Payment: Initialization](#user-makes-payment-initialization)
   - [Request Information](#request-information-14)
   - [Header](#header-14)
+  - [POST JSON Body](#post-json-body-1)
   - [Error Responses](#error-responses-14)
   - [POST Successful Response Example](#post-successful-response-example-1)
 - [User Makes Payment: Verification](#user-makes-payment-verification)
@@ -878,7 +879,7 @@ This API endpoints allows users to book flight created by the admin, and approve
 
 ## User Makes Payment: Initialization
 
-This API endpoints allows users that have booked flight, make payment for the flightd booked
+This API endpoints allows users that have booked flight, make payment for the flights booked
 
 **Note** When users make multiple request for booking, only one get paid.
 
@@ -896,6 +897,12 @@ This API endpoints allows users that have booked flight, make payment for the fl
 | Content-Type  | application/json                  |
 | Vary          | Accept                            |
 | Authorization | Bearer {TOKEN.access},IsSuperUser |
+
+### POST JSON Body
+
+| Property Name | type    | required | Description                                     |
+| ------------- | ------- | -------- | ----------------------------------------------- |
+| fligt_id      | Integer | True     | This field is the id of the flight being booked |
 
 
 ### Error Responses

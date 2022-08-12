@@ -1,14 +1,18 @@
 from rest_framework import serializers
 
-
-def is_amount(value):
-    """Checking that the value entered is a valid money amount"""
-    if value <= 0:
-        raise serializers.ValidationError({"detail": "Invalid Amount"})
-    return value
+from booking.models import Booking
 
 
-class AcceptFundsSerializer(serializers.Serializer):
+# def is_amount(value):
+#     """Checking that the value entered is a valid money amount"""
+#     if value <= 0:
+#         raise serializers.ValidationError({"detail": "Invalid Amount"})
+#     return value
+
+
+class AcceptFundsSerializer(serializers.ModelSerializer):
     """Serializer for sending request to Paystack"""
 
-    amount = serializers.IntegerField(validators=[is_amount])
+    class Meta:
+        model = Booking
+        fields = ["flight_id"]
