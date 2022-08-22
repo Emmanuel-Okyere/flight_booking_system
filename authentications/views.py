@@ -91,6 +91,7 @@ class UserRegistration(GenericAPIView):
 class EmailVerification(GenericAPIView):
     """Email Verification"""
 
+    serializer_class = ChangePasswordSerializer
     queryset = Users.objects
 
     def get(self, request):
@@ -183,6 +184,7 @@ class ChangePassword(GenericAPIView):
 class UserLogOut(GenericAPIView):
     """Logout API view to blacklist refresh token"""
 
+    serializer_class = MyTokenObtainPairSerializer
     queryset = Users.objects
     permission_classes = (IsAuthenticated,)
 
@@ -235,6 +237,7 @@ class ResetPasswordLinkVerify(GenericAPIView):
     """Verification of the link sent to user when they try to access the link"""
 
     queryset = Users.objects
+    serializer_class = RequestPasswordResetEmail
     permission_classes = []
 
     def get(self, request):
@@ -296,12 +299,13 @@ class ResetPasswordView(GenericAPIView):
 class UserDetails(GenericAPIView):
     """View for getting user details with tokens"""
 
+    serializer_class = UserDetailSerializer
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         """Get function request"""
         user = request.user
-        serializer = UserDetailSerializer(user)
+        serializer = self.serializer_class(user)
         return Response(
             {
                 "status": "success",
@@ -372,6 +376,7 @@ class ManagerRegisterUserView(GenericAPIView):
 class GoogleLoginView(GenericAPIView):
     """Google Auth2 login view"""
 
+    serializer_class = MyTokenObtainPairSerializer
     queryset = Users.objects
     permission_classes = []
 

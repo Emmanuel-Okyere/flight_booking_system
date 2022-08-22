@@ -20,35 +20,52 @@ class AcceptFunds(APIView):
     def post(self, request):
         """Post request for making payments"""
         serializer = AcceptFundsSerializer(data=request.data)
+        print(request.data)
+        if serializer.is_valid():
+            print(serializer.data)
+            flight_object = serializer.validated_data["flight_id"]
+            try:
+                booking = Booking.objects.filter(user_id=request.user)
+                if booking[0].is_booked:
+                    return Response(
+                        {"status": "failure", "detail": "payment already made"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                else:
+                    user = self.request.user
+                    serializer.validated_data["amount"] = (
+                        flight_object.price_per_seat * len(booking)
+                    ) * 100
+                    serializer.validated_data["email"] = user.email_address
+                    data = serializer.validated_data
+                    url = "https://api.paystack.co/transaction/initialize"
+                    headers = {
+                        "authorization": f"Bearer {settings.PAYSTACK_TEST_SECRET}"
+                    }
+                    r = requests.post(url, headers=headers, data=data)
+                    response = r.json()
+                    Payment.objects.create(
+                        amount_credited=serializer.validated_data["amount"],
+                        paystack_payment_reference=response["data"]["reference"],
+                        payment_status=1,
+                    )
+                    return Response(
+                        {
+                            "status": "sucess",
+                            "detail": "Authorization URL created",
+                            "data": {
+                                "authorization_url": response["data"][
+                                    "authorization_url"
+                                ],
+                                "access_code": response["data"]["access_code"],
+                                "reference": response["data"]["reference"],
+                            },
+                        },
+                        status=status.HTTP_201_CREATED,
+                    )
 
-        if serializer.is_valid(raise_exception=True):
-            user = self.request.user
-            serializer.validated_data["amount"] = (
-                serializer.validated_data["amount"]
-            ) * 100
-            serializer.validated_data["email"] = user.email_address
-            data = serializer.validated_data
-            url = "https://api.paystack.co/transaction/initialize"
-            headers = {"authorization": f"Bearer {settings.PAYSTACK_TEST_SECRET}"}
-            r = requests.post(url, headers=headers, data=data)
-            response = r.json()
-            Payment.objects.create(
-                amount_credited=serializer.validated_data["amount"],
-                paystack_payment_reference=response["data"]["reference"],
-                payment_status=1,
-            )
-            return Response(
-                {
-                    "status": "sucess",
-                    "detail": "Authorization URL created",
-                    "data": {
-                        "authorization_url": response["data"]["authorization_url"],
-                        "access_code": response["data"]["access_code"],
-                        "reference": response["data"]["reference"],
-                    },
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            except Booking.DoesNotExist:
+                return Response({"status": "failure", "detail": "Booking not found"})
         else:
             return Response(
                 {"status": "sucess", "detail": serializer.errors},
@@ -67,7 +84,7 @@ class VerifyFunds(APIView):
             transaction = Payment.objects.get(paystack_payment_reference=reference)
             booking = Booking.objects.filter(user_id=request.user)
             reference = transaction.paystack_payment_reference
-            url = "https://api.paystack.co/transaction/verify/{}".format(reference)
+            url = f"https://api.paystack.co/transaction/verify/{reference}"
             headers = {"authorization": f"Bearer {settings.PAYSTACK_TEST_SECRET}"}
             r = requests.get(url, headers=headers)
             resp = r.json()
@@ -96,11 +113,10 @@ class VerifyFunds(APIView):
                     },
                     status=status.HTTP_200_OK,
                 )
-            else:
-                return Response(
-                    {"status": "failure", "detail": "payment uncessful"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            return Response(
+                {"status": "failure", "detail": "payment uncessful"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Payment.DoesNotExist:
             return Response(
                 {
